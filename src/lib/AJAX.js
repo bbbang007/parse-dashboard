@@ -41,6 +41,13 @@ export function request(
   if (useRequestedWith) {
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
   }
+  const key = '68FCmTWuWG570Iu9o6dVlbRYAPMqMU2kLO8FNLH7';
+  
+  // getHMAC_SHA1
+  const hmac = getHMAC_SHA1(key, date);
+  xhr.setRequestHeader('Date', date);
+  xhr.setRequestHeader('Authorization', hmac);
+
   xhr.withCredentials = withCredentials;
   let resolve;
   let reject;
@@ -131,6 +138,15 @@ export function request(
   return p;
 }
 
+function getHMAC_SHA1(key, date) {
+  const hmac = crypto.createHmac('sha1', key);
+  // log hmac
+  hmac.update(date);
+  console.log(hmac);
+  const calculatedHMAC = hmac.digest('base64');
+  return calculatedHMAC;
+}
+
 /**
  * abortableGet - get request for requests that may need to be aborted
  * @param  {String} url - get request path
@@ -160,3 +176,4 @@ export function put(url, body) {
 export function del(url) {
   return request('DELETE', url);
 }
+

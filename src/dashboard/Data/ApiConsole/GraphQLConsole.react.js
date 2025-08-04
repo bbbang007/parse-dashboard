@@ -31,11 +31,11 @@ export default class GraphQLConsole extends Component {
       );
     } else {
       const parseHeaders = {
-        'X-Parse-Application-Id': applicationId,
+        'Application-Id': applicationId,
         'X-Parse-Master-Key': masterKey,
       };
       if (clientKey) {
-        parseHeaders['X-Parse-Client-Key'] = clientKey;
+        parseHeaders['Client-Key'] = clientKey;
       }
       content = (
         <GraphiQL

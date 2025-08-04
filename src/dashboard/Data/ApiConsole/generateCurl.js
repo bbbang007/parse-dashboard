@@ -19,14 +19,14 @@ export default function generateCurl(app, method, path, body, options) {
     path = path.substr(1);
   }
 
-  const headers = [[`-H "X-Parse-Application-Id: ${app.applicationId}" \\`]];
+  const headers = [[`-H "Application-Id: ${app.applicationId}" \\`]];
   if (options.useMasterKey) {
     headers.push([`-H "X-Parse-Master-Key: ${app.masterKey}" \\`]);
   } else {
     headers.push([`-H "X-Parse-REST-API-Key: ${app.restKey}" \\`]);
   }
   if (options.sessionToken) {
-    headers.push([`-H "X-Parse-Session-Token: ${options.sessionToken}" \\`]);
+    headers.push([`-H "Session-Token: ${options.sessionToken}" \\`]);
   }
 
   const _body = escapeValueForCURL(body);

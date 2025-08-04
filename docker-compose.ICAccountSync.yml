@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-icaccountsync
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=parse_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - parse-network
+    restart: unless-stopped
+
+  # Parse Server
+  parse-server:
+    image: parseplatform/parse-server:latest
+    container_name: parse-server-icaccountsync
+    environment:
+      - PARSE_SERVER_APPLICATION_ID=ICAccountSyncApp
+      - PARSE_SERVER_MASTER_KEY=ICAccountSync@Master123!
+      - PARSE_SERVER_DATABASE_URI=postgresql://postgres:password@postgres:5432/parse_db
+      - PARSE_SERVER_MOUNT_PATH=/parse
+      - PARSE_SERVER_URL=http://parse-server:1337/parse
+      - PORT=1337
+      - PARSE_SERVER_ALLOW_INSECURE_HTTP=1
+      - PARSE_SERVER_ENABLE_ANONYMOUS_USERS=1
+    ports:
+      - "1337:1337"
+    depends_on:
+      - postgres
+    networks:
+      - parse-network
+    restart: unless-stopped
+    volumes:
+      - ./parse-server-config:/parse-server/config
+
+  # Parse Dashboard ICAccountSync
+  parse-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.ICAccountSync
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    container_name: parse-dashboard-icaccountsync
+    environment:
+      - PARSE_DASHBOARD_APP_ID=ICAccountSyncApp
+      - PARSE_DASHBOARD_MASTER_KEY=ICAccountSync@Master123!
+      - PARSE_DASHBOARD_SERVER_URL=http://parse-server:1337/parse
+      - PARSE_DASHBOARD_APP_NAME=ICAccountSync Dashboard
+      - PARSE_DASHBOARD_USER_ID=admin
+      - PARSE_DASHBOARD_USER_PASSWORD=admin123
+      - PARSE_DASHBOARD_ALLOW_INSECURE_HTTP=1
+      - PORT=4040
+    ports:
+      - "4040:4040"
+    depends_on:
+      - parse-server
+    networks:
+      - parse-network
+    restart: unless-stopped
+    volumes:
+      - ./dashboard-config:/src/config
+
+  # Redis (可选，用于缓存)
+  redis:
+    image: redis:7-alpine
+    container_name: redis-icaccountsync
+    ports:
+      - "6379:6379"
+    networks:
+      - parse-network
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+networks:
+  parse-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local 
